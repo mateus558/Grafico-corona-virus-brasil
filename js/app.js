@@ -5,6 +5,23 @@ var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
 var yy = today.getFullYear().toLocaleString().slice(-2);
 var chart;
 
+
+function addZero(i) {
+    if (i < 10) {
+      i = "0" + i;
+    }
+    return i;
+}
+  
+function updateTime() {
+    var d = new Date();
+    var h = addZero(d.getHours());
+    var m = addZero(d.getMinutes());
+    var s = addZero(d.getSeconds());
+    var x = document.getElementById("update-time");
+    x.innerHTML = h + ":" + m + ":" + s;
+}
+
 function fillCoronaChart(){
     let url_request = "https://corona.lmao.ninja/v2/historical/brazil?lastdays=all";
     var xmlHttp = new XMLHttpRequest();
@@ -75,12 +92,25 @@ function updateCoronaChart(){
                     }
                 });
                 chart.update();
+                updateTime();
+            }else{
+                chart.data.datasets.forEach((dataset) => {
+                    if(dataset.label == "Casos confirmados"){
+                        if(data.cases != dataset.data[dataset.data.length-1]) updateTime();
+                        dataset.data[dataset.data.length-1] = data.cases;
+                    }
+                    if(dataset.label == "Mortes"){
+                        if(data.deaths != dataset.data[dataset.data.length-1]) updateTime();
+                        dataset.data[dataset.data.length-1] = data.deaths;
+                    }
+                });
+                chart.update();
             }
         }
     }
     xmlHttp.open("GET", url_request, true); // true for asynchronous 
     xmlHttp.send();
-    setTimeout(updateCoronaChart, 1000);
+    setTimeout(updateCoronaChart, 700000);
 }
 window.onload = function () {
     this.fillCoronaChart();
