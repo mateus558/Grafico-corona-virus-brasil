@@ -63,6 +63,9 @@ function fillCoronaChart(){
             var ctx = canvas.getContext('2d');
             chart = new Chart(ctx, config);
             chart.render();
+            chart.update();
+            updateTime();
+            console.log("Chart filled.")
         }
     }
     xmlHttp.open("GET", url_request, true); // true for asynchronous 
@@ -92,6 +95,7 @@ function updateCoronaChart(){
                     }
                 });
                 chart.update();
+                console.log("Day " + label + " cases added.");
                 updateTime();
             }else{
                 chart.data.datasets.forEach((dataset) => {
@@ -105,6 +109,7 @@ function updateCoronaChart(){
                     }
                 });
                 chart.update();
+                console.log("Day " + label + " cases updated.");
             }
         }
     }
