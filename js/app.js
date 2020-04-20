@@ -1,10 +1,15 @@
 
-var url_request = "https://corona.lmao.ninja/v2/historical/brazil?lastdays=all";
+var today = new Date();
+var dd = String(today.getDate()).padStart(2, '0');
+var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+var yy = today.getFullYear().toLocaleString().slice(-2);
+var chart;
 
 function fillCoronaChart(){
+    let url_request = "https://corona.lmao.ninja/v2/historical/brazil?lastdays=all";
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
             var data = JSON.parse(xmlHttp.responseText).timeline;
             cases_data = Object.keys(data.cases).map(key => {
                 return data.cases[key];
@@ -39,14 +44,45 @@ function fillCoronaChart(){
             };
 
             var ctx = canvas.getContext('2d');
-            var chart = new Chart(ctx, config);
+            chart = new Chart(ctx, config);
             chart.render();
+        }
     }
     xmlHttp.open("GET", url_request, true); // true for asynchronous 
     xmlHttp.send();
-    setTimeout(fillCoronaChart, 700000);
 }
 
+function updateCoronaChart(){
+    let url_request = "https://corona.lmao.ninja/v2/countries/brazil?yesterday=false&strict=false";
+
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+            var data = JSON.parse(xmlHttp.responseText);
+            if(mm[0] == '0') mm = mm.slice(-1);
+            let label = mm + '/' + dd+'/'+yy;
+            for(var i = 0; i < chart.data.labels.length; i++){
+                if(chart.data.labels[i] == label) break;
+            }
+            if(i == chart.data.labels.length){
+                chart.data.labels.push(label);
+                chart.data.datasets.forEach((dataset) => {
+                    if(dataset.label == "Casos confirmados"){
+                        dataset.data.push(data.cases);
+                    }
+                    if(dataset.label == "Mortes"){
+                        dataset.data.push(data.deaths);
+                    }
+                });
+                chart.update();
+            }
+        }
+    }
+    xmlHttp.open("GET", url_request, true); // true for asynchronous 
+    xmlHttp.send();
+    setTimeout(updateCoronaChart, 1000);
+}
 window.onload = function () {
     this.fillCoronaChart();
+    this.updateCoronaChart();
 }
